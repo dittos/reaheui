@@ -42,7 +42,6 @@ let apply_dir (dx, dy) dir =
 
 let next_delta ({ delta; _ } as ptr) branch underflow =
     let Aheui_cell.Cell (_, dir) = current_cell ptr in
-    let delta' = apply_dir delta dir in
     let flip_if pred x = if pred then flip_dir x else x in
     apply_dir delta dir |> flip_if underflow |> flip_if branch
 
@@ -63,14 +62,34 @@ let read_uchar () =
     |> List.hd_exn
     |> Uchar.to_int
 
+let stack2 f mem =
+    let x = Aheui_mem.pop mem in
+    let y = Aheui_mem.pop mem in
+    Aheui_mem.push (f y x) mem
 
 let execute_op op mem =
     let module C = Aheui_cell in
+    let module M = Aheui_mem in
     match op with
-    | C.InputCharOp -> Aheui_mem.push (read_uchar ()) mem
-    | C.PrintNumOp -> printf "%d" (Aheui_mem.pop mem)
+    | C.InputNumOp -> M.push (int_of_string (read_line ())) mem
+    | C.InputCharOp -> M.push (read_uchar ()) mem
+    | C.PrintNumOp -> print_string (string_of_int (M.pop mem))
+    | C.PrintCharOp -> print_string (Utf8.to_string (Uchar.of_int (M.pop mem)))
     | C.ExitOp -> raise Exit
-    | _ -> ()
+    | C.DivOp -> stack2 (/) mem
+    | C.AddOp -> stack2 (+) mem
+    | C.MulOp -> stack2 ( * ) mem
+    | C.ModOp -> stack2 (%) mem
+    | C.DupOp -> M.dup mem
+    | C.SwitchOp i -> M.switch i mem
+    | C.MoveOp i -> M.push_to i (M.pop mem) mem
+    | C.CmpOp -> stack2 (fun y x -> if y >= x then 1 else 0) mem
+    | C.SubOp -> stack2 (-) mem
+    | C.SwapOp -> M.swap mem
+    | C.PopOp -> ignore (M.pop mem)
+    | C.PushOp x -> M.push x mem
+    | C.BranchOp -> ignore (M.pop mem)
+    | C.NoOp -> ()
 
 let rec run_loop ptr mem =
     let Aheui_cell.Cell (op, dir) = current_cell ptr in
@@ -88,6 +107,9 @@ let execute (space:Aheui_space.t) =
 
 
 let () =
-    let space = Aheui_parser.parse "밯망희\n아희" in
-    printf "%s\n" (Sexp.to_string_hum (Aheui_space.sexp_of_t space));
-    execute space
+    let code = In_channel.read_all Sys.argv.(1) in
+    let space = Aheui_parser.parse code in
+    (*fprintf stderr "%s\n" (Sexp.to_string_hum (Aheui_space.sexp_of_t space));*)
+    try
+        execute space
+    with Exit -> ()

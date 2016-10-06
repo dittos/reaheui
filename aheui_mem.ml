@@ -27,7 +27,7 @@ module Storage = struct
 
     let dup = function
     | Stack (hd :: tl) -> Stack (hd :: hd :: tl)
-    | Queue (hd :: tl) -> Queue (hd :: hd :: tl)
+    | Queue xs -> Queue (List.append xs [List.hd_exn xs])
     | _ -> raise (Failure "dup")
 
     let size = function

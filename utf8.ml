@@ -36,3 +36,27 @@ let folder (state : read_state) (ch : char) : read_state =
 let chars (s : string) =
     let final_state = String.fold ~init:initial_read_state ~f:folder s in
     final_state.buf
+
+let to_string (c : Uchar.t) =
+    let ch = Uchar.to_int c in
+    (
+        if ch < 0x80 then [ch]
+        else if ch < 0x0800 then [
+            0xc0 lor (ch lsr 6);
+            0x80 lor ((ch lsr 0) land 0x3f)
+        ]
+        else if ch < 0x10000 then [
+            0xe0 lor (ch lsr 12);
+            0x80 lor ((ch lsr 6) land 0x3f);
+            0x80 lor ((ch lsr 0) land 0x3f);
+        ]
+        else if ch < 0x110000 then [
+            0xf0 lor (ch lsr 18);
+            0x80 lor ((ch lsr 12) land 0x3f);
+            0x80 lor ((ch lsr 6) land 0x3f);
+            0x80 lor ((ch lsr 0) land 0x3f);
+        ]
+        else failwith (sprintf "Print error. U+%x is not a unicode code point." ch)
+    )
+    |> List.map ~f:char_of_int
+    |> String.of_char_list
