@@ -56,9 +56,9 @@ let parseDir (x:int) =
         | 12 -> C.SetDir(0, -2)
         | 13 -> C.SetDir(0, 1)
         | 17 -> C.SetDir(0, 2)
-        | 18 -> C.FlipX
+        | 18 -> C.FlipY
         | 19 -> C.FlipXY
-        | 20 -> C.FlipY
+        | 20 -> C.FlipX
         | _-> C.KeepDir
 
 

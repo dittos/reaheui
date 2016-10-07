@@ -5,34 +5,33 @@ module Storage = struct
     type t =
     | Stack of int list
     | Queue of int list
+    [@@deriving sexp]
 
-    let peek = function
-    | Stack (hd :: _) -> hd
-    | Queue (hd :: _) -> hd
+    let unwrap (Stack xs | Queue xs) = xs
+
+    let map f = function
+    | Stack xs -> Stack (f xs)
+    | Queue xs -> Queue (f xs)
+
+    let peek s = match unwrap s with
+    | hd :: _ -> hd
     | _ -> 0
 
-    let pop = function
-    | Stack (_ :: tl) -> Stack tl
-    | Queue (_ :: tl) -> Queue tl
-    | _ -> raise (Failure "pop")
+    let pop = map List.tl_exn
 
     let push x = function
     | Stack xs -> Stack (x :: xs)
     | Queue xs -> Queue (List.append xs [x])
 
-    let swap = function
-    | Stack (x :: y :: ys) -> Stack (y :: x :: ys)
-    | Queue (x :: y :: ys) -> Queue (y :: x :: ys)
-    | _ -> raise (Failure "swap")
+    let swap = map (function
+    | x :: y :: ys -> y :: x :: ys
+    | _ -> raise (Failure "swap"))
 
-    let dup = function
-    | Stack (hd :: tl) -> Stack (hd :: hd :: tl)
-    | Queue xs -> Queue (List.append xs [List.hd_exn xs])
-    | _ -> raise (Failure "dup")
+    let dup = map (function
+    | hd :: tl -> hd :: hd :: tl
+    | _ -> raise (Failure "dup"))
 
-    let size = function
-    | Stack xs -> List.length xs
-    | Queue xs -> List.length xs
+    let size s = List.length (unwrap s)
 end
 
 

@@ -37,6 +37,17 @@ let chars (s : string) =
     let final_state = String.fold ~init:initial_read_state ~f:folder s in
     final_state.buf
 
+let read_uchar chan =
+    let rec fold state =
+        match In_channel.input_char chan with
+        | Some ch ->
+            (let next_state = folder state ch in
+            match next_state.buf with
+            | [result] -> result
+            | _ -> fold next_state)
+        | _ -> Uchar.of_int 0
+    in fold initial_read_state
+
 let to_string (c : Uchar.t) =
     let ch = Uchar.to_int c in
     (

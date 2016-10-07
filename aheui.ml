@@ -55,13 +55,6 @@ let advance_ptr { space; pos = (x, y); _ } (dx, dy) =
     let y' = wrap (y + dy) (Aheui_space.height space) in
     { space; pos = (x', y'); delta = (dx, dy) }
 
-
-let read_uchar () =
-    read_line ()
-    |> Utf8.chars
-    |> List.hd_exn
-    |> Uchar.to_int
-
 let stack2 f mem =
     let x = Aheui_mem.pop mem in
     let y = Aheui_mem.pop mem in
@@ -72,10 +65,10 @@ let execute_op op mem =
     let module M = Aheui_mem in
     match op with
     | C.InputNumOp -> M.push (int_of_string (read_line ())) mem
-    | C.InputCharOp -> M.push (read_uchar ()) mem
+    | C.InputCharOp -> M.push (Uchar.to_int (Utf8.read_uchar stdin)) mem
     | C.PrintNumOp -> print_string (string_of_int (M.pop mem))
     | C.PrintCharOp -> print_string (Utf8.to_string (Uchar.of_int (M.pop mem)))
-    | C.ExitOp -> raise Exit
+    | C.ExitOp -> exit (M.peek mem)
     | C.DivOp -> stack2 (/) mem
     | C.AddOp -> stack2 (+) mem
     | C.MulOp -> stack2 ( * ) mem
@@ -100,16 +93,11 @@ let rec run_loop ptr mem =
     execute_op (if underflow then Aheui_cell.NoOp else op) mem;
     run_loop ptr' mem
 
-
-
 let execute (space:Aheui_space.t) =
-    run_loop { space; pos = (0, 0); delta = (1, 0) } Aheui_mem.init
-
+    run_loop { space; pos = (0, 0); delta = (0, 1) } Aheui_mem.init
 
 let () =
     let code = In_channel.read_all Sys.argv.(1) in
     let space = Aheui_parser.parse code in
     (*fprintf stderr "%s\n" (Sexp.to_string_hum (Aheui_space.sexp_of_t space));*)
-    try
-        execute space
-    with Exit -> ()
+    execute space
