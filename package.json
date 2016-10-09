@@ -3,9 +3,9 @@
   "version": "0.0.1",
   "scripts": {
     "postinstall": "npm run reasonBuild",
-    "reasonBuild": "eval $(dependencyEnv) && nopam && rebuild -use-ocamlfind -I src ./src/aheui.native 2>&1 | refmterr",
+    "reasonBuild": "eval $(dependencyEnv) && nopam && rebuild -use-ocamlfind -I src ./src/Aheui.native 2>&1 | refmterr",
     "reasonbuild": "npm run reasonBuild",
-    "start": "eval $(dependencyEnv) && ./_build/src/aheui.native",
+    "start": "eval $(dependencyEnv) && ./_build/src/Aheui.native",
     "clean": "eval $(dependencyEnv) && nopam && rebuild -clean",
     "top": "eval $(dependencyEnv) && rtop",
     "env": "eval $(dependencyEnv) && env",
