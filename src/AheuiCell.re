@@ -1,3 +1,7 @@
+/*
+ * vim: set ft=rust:
+ * vim: set ft=reason:
+ */
 type dir =
   | SetDir (int, int)
   | FlipX

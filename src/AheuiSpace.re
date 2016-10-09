@@ -1,3 +1,7 @@
+/*
+ * vim: set ft=rust:
+ * vim: set ft=reason:
+ */
 type t = array (array AheuiCell.t);
 
 let width space => {
