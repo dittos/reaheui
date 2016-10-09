@@ -1,0 +1,26 @@
+{
+  "name": "reaheui",
+  "version": "0.0.1",
+  "scripts": {
+    "postinstall": "npm run reasonBuild",
+    "reasonBuild": "eval $(dependencyEnv) && nopam && rebuild -use-ocamlfind -I src ./src/aheui.native",
+    "reasonbuild": "npm run reasonBuild",
+    "start": "eval $(dependencyEnv) && ./_build/src/aheui.native",
+    "clean": "eval $(dependencyEnv) && nopam && rebuild -clean",
+    "top": "eval $(dependencyEnv) && rtop",
+    "env": "eval $(dependencyEnv) && env",
+    "editor": "eval $(dependencyEnv) && eval $EDITOR",
+    "whereisocamlmerlin": "eval $(dependencyEnv) && which ocamlmerlin-reason"
+  },
+  "dependencies": {
+    "@opam-alpha/core": "^113.33.3",
+    "@opam-alpha/merlin": "^ 2.5.0",
+    "@opam-alpha/uchar": "0.0.1",
+    "dependency-env": "https://github.com/npm-ml/dependency-env.git",
+    "nopam": "https://github.com/yunxing/nopam.git",
+    "reason": "https://github.com/facebook/reason.git"
+  },
+  "engines": {
+    "npm": ">=3.10.0"
+  }
+}
