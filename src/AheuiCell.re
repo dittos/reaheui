@@ -26,8 +26,12 @@ type op =
   | PushOp int
   | NoOp;
 
-type t = Cell (op, dir);
+type t = {op: op, dir: dir};
 
-let empty = Cell (NoOp, KeepDir);
+let empty = {op: NoOp, dir: KeepDir};
 
-let make op dir => Cell (op, dir);
+let make op dir => {op, dir};
+
+let op cell => cell.op;
+
+let dir cell => cell.dir;

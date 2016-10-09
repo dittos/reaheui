@@ -1,21 +1,16 @@
 open Core.Std;
 
+let module C = AheuiCell;
+
 type delta = (int, int);
 
 type pos = (int, int);
 
 type ptr = {space: AheuiSpace.t, pos: pos, delta: delta};
 
-let current_cell {space, pos} => AheuiSpace.cellAt pos space;
+let currentCell {space, pos} => AheuiSpace.cellAt pos space;
 
-let should_branch op mem =>
-  switch op {
-  | AheuiCell.BranchOp => AheuiMem.peek mem == 0
-  | _ => false
-  };
-
-let required_elems op => {
-  let module C = AheuiCell;
+let requiredElems op =>
   switch op {
   | C.DivOp => 2
   | C.AddOp => 2
@@ -31,29 +26,7 @@ let required_elems op => {
   | C.PrintCharOp => 1
   | C.PopOp => 1
   | _ => 0
-  }
-};
-
-let will_underflow op mem => AheuiMem.size mem < required_elems op;
-
-let flip_dir (x, y) => (- x, - y);
-
-let apply_dir (dx, dy) dir => {
-  let module C = AheuiCell;
-  switch dir {
-  | C.SetDir (sx, sy) => (sx, sy)
-  | C.FlipX => (- dx, dy)
-  | C.FlipY => (dx, - dy)
-  | C.FlipXY => flip_dir (dx, dy)
-  | C.KeepDir => (dx, dy)
-  }
-};
-
-let next_delta ({delta} as ptr) branch underflow => {
-  let AheuiCell.Cell (_, dir) = current_cell ptr;
-  let flip_if pred x => pred ? flip_dir x : x;
-  apply_dir delta dir |> flip_if underflow |> flip_if branch
-};
+  };
 
 let wrap pos size =>
   if (pos < 0) {
@@ -64,21 +37,13 @@ let wrap pos size =>
     pos
   };
 
-let advance_ptr {space, pos: (x, y)} (dx, dy) => {
-  let x' = wrap (x + dx) (AheuiSpace.width space);
-  let y' = wrap (y + dy) (AheuiSpace.height space);
-  {space, pos: (x', y'), delta: (dx, dy)}
-};
-
-let stack2 f mem => {
-  let x = AheuiMem.pop mem;
-  let y = AheuiMem.pop mem;
-  AheuiMem.push (f y x) mem
-};
-
 let executeOp op mem => {
-  let module C = AheuiCell;
   let module M = AheuiMem;
+  let stack2 f mem => {
+    let x = M.pop mem;
+    let y = M.pop mem;
+    M.push (f y x) mem
+  };
   switch op {
   | C.InputNumOp => M.push (int_of_string (read_line ())) mem
   | C.InputCharOp => M.push (Uchar.to_int (Utf8.read_uchar stdin)) mem
@@ -102,15 +67,39 @@ let executeOp op mem => {
   }
 };
 
-let execute (space: AheuiSpace.t) => {
-  let rec loop ptr mem => {
-    let AheuiCell.Cell (op, dir) = current_cell ptr;
-    let branch = should_branch op mem;
-    let underflow = will_underflow op mem;
-    let delta = next_delta ptr branch underflow;
-    let ptr' = advance_ptr ptr delta;
-    executeOp (underflow ? AheuiCell.NoOp : op) mem;
-    loop ptr' mem
+let execute space => {
+  let mem = AheuiMem.init;
+  let advancePtr {space, pos: (x, y)} (dx, dy) => {
+    let x' = wrap (x + dx) (AheuiSpace.width space);
+    let y' = wrap (y + dy) (AheuiSpace.height space);
+    {space, pos: (x', y'), delta: (dx, dy)}
   };
-  loop {space, pos: (0, 0), delta: (0, 1)} AheuiMem.init
+  let applyDir (dx, dy) dir =>
+    switch dir {
+    | C.SetDir (sx, sy) => (sx, sy)
+    | C.FlipX => (-dx, dy)
+    | C.FlipY => (dx, -dy)
+    | C.FlipXY => (-dx, -dy)
+    | C.KeepDir => (dx, dy)
+    };
+  let nextDelta ({delta} as ptr) branch underflow => {
+    let dir = C.dir (currentCell ptr);
+    let flip (x, y) => (-x, -y);
+    let flipIf pred x => pred ? flip x : x;
+    applyDir delta dir |> flipIf underflow |> flipIf branch
+  };
+  let rec loop ptr => {
+    let op = C.op (currentCell ptr);
+    let branch = switch op {
+    | C.BranchOp => AheuiMem.peek mem == 0
+    | _ => false
+    };
+    let underflow = AheuiMem.size mem < requiredElems op;
+    if (not underflow) {
+      executeOp op mem
+    };
+    let delta = nextDelta ptr branch underflow;
+    loop (advancePtr ptr delta)
+  };
+  loop {space, pos: (0, 0), delta: (0, 1)}
 };
