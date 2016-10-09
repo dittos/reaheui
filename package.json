@@ -10,7 +10,8 @@
     "top": "eval $(dependencyEnv) && rtop",
     "env": "eval $(dependencyEnv) && env",
     "editor": "eval $(dependencyEnv) && eval $EDITOR",
-    "whereisocamlmerlin": "eval $(dependencyEnv) && which ocamlmerlin-reason"
+    "whereisocamlmerlin": "eval $(dependencyEnv) && which ocamlmerlin-reason",
+    "test": "eval $(dependencyEnv) && npm run reasonBuild && ./test.sh"
   },
   "dependencies": {
     "@opam-alpha/core": "^113.33.3",
