@@ -67,7 +67,7 @@ let execute_op op mem =
     | C.InputNumOp -> M.push (int_of_string (read_line ())) mem
     | C.InputCharOp -> M.push (Uchar.to_int (Utf8.read_uchar stdin)) mem
     | C.PrintNumOp -> print_string (string_of_int (M.pop mem))
-    | C.PrintCharOp -> print_string (Utf8.to_string (Uchar.of_int (M.pop mem)))
+    | C.PrintCharOp -> Utf8.print_uchar (Uchar.of_int (M.pop mem))
     | C.ExitOp -> exit (M.peek mem)
     | C.DivOp -> stack2 (/) mem
     | C.AddOp -> stack2 (+) mem
