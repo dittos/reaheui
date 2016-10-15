@@ -73,7 +73,5 @@ let parseChar ch =>
 
 let parseLine line => Utf8.chars line |> List.map f::parseChar |> Array.of_list;
 
-let parse code => {
-  let space = String.split_lines code |> List.map f::parseLine |> Array.of_list;
-  AheuiSpace.fillBlanks (AheuiSpace.width space) space
-};
+let parse code =>
+  String.split_lines code |> List.map f::parseLine |> Array.of_list;

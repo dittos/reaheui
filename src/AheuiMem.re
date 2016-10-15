@@ -6,47 +6,71 @@ open Core.Std;
 
 let module Storage = {
   type t =
-    | Stack (list int)
-    | Queue (list int)
-  [@@deriving sexp];
-  let unwrap (Stack xs | Queue xs) => xs;
-  let map f s =>
-    switch s {
-    | Stack xs => Stack (f xs)
-    | Queue xs => Queue (f xs)
-    };
+    | Stack (Stack.t int)
+    | Queue (Dequeue.t int)
+    ;
   let peek s =>
-    switch (unwrap s) {
-    | [hd, ..._] => hd
-    | _ => 0
-    };
-  let pop = map List.tl_exn;
-  let push x s =>
     switch s {
-    | Stack xs => Stack [x, ...xs]
-    | Queue xs => Queue (List.append xs [x])
+    | Stack x => Stack.top x |> Option.value default::0
+    | Queue x => Dequeue.peek_front x |> Option.value default::0
     };
-  let swap = map (
-    fun s =>
-      switch s {
-      | [x, y, ...ys] => [y, x, ...ys]
-      | _ => raise (Failure "swap")
+  let pop s => {
+    ignore (switch s {
+    | Stack x => Stack.pop_exn x
+    | Queue x => Dequeue.dequeue_front_exn x
+    });
+    s
+  };
+  let push value s => {
+    switch s {
+    | Stack x => Stack.push x value
+    | Queue x => Dequeue.enqueue_back x value
+    };
+    s
+  };
+  let swap s => {
+    switch s {
+    | Stack x => {
+        let a = Stack.pop_exn x;
+        let b = Stack.pop_exn x;
+        Stack.push x a;
+        Stack.push x b
       }
-  );
-  let dup = map (
-    fun s =>
-      switch s {
-      | [hd, ...tl] => [hd, hd, ...tl]
-      | _ => raise (Failure "dup")
+    | Queue x => {
+        let a = Dequeue.dequeue_front_exn x;
+        let b = Dequeue.dequeue_front_exn x;
+        Dequeue.enqueue_front x a;
+        Dequeue.enqueue_front x b
       }
-  );
-  let size s => List.length (unwrap s);
+    };
+    s
+  };
+  let dup s => {
+    switch s {
+    | Stack x => {
+        let a = Stack.top_exn x;
+        Stack.push x a
+      }
+    | Queue x => {
+        let a = Dequeue.peek_front_exn x;
+        Dequeue.enqueue_front x a
+      }
+    };
+    s
+  };
+  let size s => switch s {
+  | Stack x => Stack.length x
+  | Queue x => Dequeue.length x
+  };
 };
 
 type t = {storages: array Storage.t, mutable currentStorageIndex: int};
 
 let init: t = {
-  let new_storage idx => idx == 21 ? Storage.Queue [] : Storage.Stack [];
+  let new_storage idx => switch idx {
+  | 21 => Storage.Queue (Dequeue.create ())
+  | _ => Storage.Stack (Stack.create ())
+  };
   {storages: Array.init 27 f::new_storage, currentStorageIndex: 0}
 };
 

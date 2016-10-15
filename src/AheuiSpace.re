@@ -2,21 +2,31 @@
  * vim: set ft=rust:
  * vim: set ft=reason:
  */
-type t = array (array AheuiCell.t);
-
-let width space => {
-  let folder maxWidth row => max maxWidth (Array.length row);
-  Array.fold_left folder 0 space
+type t = {
+  width: int,
+  height: int,
+  cells: array (array AheuiCell.t),
 };
 
-let height space => Array.length space;
+let width {width} => width;
 
-let fillBlanks width space => {
+let height {height} => height;
+
+let create cells => {
+  let width = {
+    let folder maxWidth row => max maxWidth (Array.length row);
+    Array.fold_left folder 0 cells
+  };
+  let height = Array.length cells;
   let fill row => {
     let blank = Array.init (width - Array.length row) (fun _ => AheuiCell.empty);
     Array.append row blank
   };
-  Array.map fill space
+  {
+    width,
+    height,
+    cells: Array.map fill cells,
+  }
 };
 
-let cellAt (x, y) space => space.(y).(x);
+let cellAt (x, y) {cells} => cells.(y).(x);
