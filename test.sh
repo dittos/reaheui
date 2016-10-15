@@ -4,4 +4,4 @@ if [ -e snippets ]; then
 else
     git clone https://github.com/aheui/snippets
 fi
-(cd snippets && AHEUI="../_build/src/Aheui.native" bash test.sh standard)
+(cd snippets && AHEUI="../_build/default/src/app.out" bash test.sh standard)

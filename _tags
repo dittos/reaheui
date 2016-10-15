@@ -1,3 +1,0 @@
-<node_modules>: -traverse
-true: package(core,ppx_jane,uchar)
-true: thread
