@@ -41,8 +41,9 @@ let wrap pos size =>
     pos
   };
 
+let module M = AheuiMem;
+
 let executeOp op mem => {
-  let module M = AheuiMem;
   let stack2 f mem => {
     let x = M.pop mem;
     let y = M.pop mem;
