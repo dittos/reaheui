@@ -56,7 +56,7 @@ let module Storage = {
   };
 };
 
-type t = {storages: array Storage.t, mutable currentStorageIndex: int};
+type t = {storages: array Storage.t, mutable currentStorage: Storage.t};
 
 let init: t = {
   let new_storage idx => switch idx {
@@ -67,27 +67,22 @@ let init: t = {
       s
     })
   };
-  {storages: Array.init 27 f::new_storage, currentStorageIndex: 0}
+  let storages = Array.init 27 f::new_storage;
+  {storages, currentStorage: storages.(0)}
 };
 
-let current mem => mem.storages.(mem.currentStorageIndex);
+let switch_to idx mem => mem.currentStorage = mem.storages.(idx);
 
-let switch_to idx mem => mem.currentStorageIndex = idx;
+let peek mem => Storage.peek mem.currentStorage;
 
-let modify_at idx f mem => f mem.storages.(idx);
+let pop mem => Storage.pop mem.currentStorage;
 
-let modify f mem => modify_at mem.currentStorageIndex f mem;
+let push_to idx x mem => Storage.push x mem.storages.(idx);
 
-let peek mem => current mem |> Storage.peek;
+let push x mem => Storage.push x mem.currentStorage;
 
-let pop mem => modify Storage.pop mem;
+let swap mem => Storage.swap mem.currentStorage;
 
-let push_to idx x mem => modify_at idx (Storage.push x) mem;
+let dup mem => Storage.dup mem.currentStorage;
 
-let push x mem => modify (Storage.push x) mem;
-
-let swap mem => modify Storage.swap mem;
-
-let dup mem => modify Storage.dup mem;
-
-let size mem => current mem |> Storage.size;
+let size mem => Storage.size mem.currentStorage;
